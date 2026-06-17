@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventory IT - CV. Rangga</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+  body { background:#f4f6f9; font-family: 'Segoe UI', Arial, sans-serif; }
+  .sidebar { min-height:100vh; background:#1e293b; }
+  .sidebar a { color:#cbd5e1; text-decoration:none; display:block; padding:12px 20px; border-radius:8px; margin:2px 10px; }
+  .sidebar a:hover, .sidebar a.active { background:#334155; color:#fff; }
+  .card-stat { border:none; border-radius:14px; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+  .login-box { max-width:400px; margin:80px auto; }
+  .badge-stok-aman { background:#dcfce7; color:#166534; }
+  .badge-stok-menipis { background:#fee2e2; color:#991b1b; }
+  .navbar-brand { font-weight:700; }
+  #loginPage, #appPage { display:none; }
+  .table thead { background:#f1f5f9; }
+  .badge-kondisi-baik { background:#dcfce7; color:#166534; }
+  .badge-kondisi-rusak { background:#fee2e2; color:#991b1b; }
+  .badge-kondisi-perbaikan { background:#fef9c3; color:#854d0e; }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN PAGE ============ -->
+<div id="loginPage">
+  <div class="login-box">
+    <div class="text-center mb-4">
+      <i class="ti ti-server-2" style="font-size:48px;color:#1e293b;"></i>
+      <h3 class="mt-2">Inventory IT</h3>
+      <p class="text-muted">CV. Rangga - Berau</p>
+    </div>
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
+        <div id="loginAlert" class="alert alert-danger d-none"></div>
+        <form id="loginForm">
+          <div class="mb-3">
+            <label class="form-label">Username</label>
+            <input type="text" class="form-control" id="loginUsername" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-control" id="loginPassword" required>
+          </div>
+          <button type="submit" class="btn btn-dark w-100">Masuk</button>
+        </form>
+      </div>
+    </div>
+    <p class="text-center text-muted mt-3" style="font-size:13px;">
+      <i class="ti ti-wifi"></i> Akses terbatas melalui jaringan perusahaan
+    </p>
+  </div>
+</div>
+
+<!-- ============ MAIN APP ============ -->
+<div id="appPage">
+  <div class="d-flex">
+    <!-- Sidebar -->
+    <div class="sidebar p-3" style="width:250px;">
+      <h5 class="text-white mb-4 px-2"><i class="ti ti-server-2"></i> Inventory IT</h5>
+      <a href="#" class="nav-link active" data-page="dashboard"><i class="ti ti-layout-dashboard me-2"></i>Dashboard</a>
+      <a href="#" class="nav-link" data-page="barang"><i class="ti ti-box me-2"></i>Data Barang</a>
+      <a href="#" class="nav-link" data-page="mutasi"><i class="ti ti-arrows-exchange me-2"></i>Mutasi Stok</a>
+      <a href="#" class="nav-link" data-page="master"><i class="ti ti-settings me-2"></i>Master Data</a>
+      <hr style="border-color:#334155;">
+      <a href="#" id="logoutBtn"><i class="ti ti-logout me-2"></i>Logout</a>
+    </div>
+
+    <!-- Content -->
+    <div class="flex-grow-1 p-4">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 id="pageTitle">Dashboard</h4>
+        <div class="text-end">
+          <span id="userFullName" class="fw-bold"></span><br>
+          <span id="userRole" class="badge bg-secondary"></span>
+        </div>
+      </div>
+
+      <!-- DASHBOARD -->
+      <div id="page-dashboard">
+        <div class="row mb-4">
+          <div class="col-md-4">
+            <div class="card card-stat p-3">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <p class="text-muted mb-1">Total Jenis Barang</p>
+                  <h3 id="statTotalBarang">0</h3>
+                </div>
+                <i class="ti ti-box" style="font-size:36px;color:#3b82f6;"></i>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card card-stat p-3">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <p class="text-muted mb-1">Total Stok</p>
+                  <h3 id="statTotalStok">0</h3>
+                </div>
+                <i class="ti ti-stack-2" style="font-size:36px;color:#10b981;"></i>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card card-stat p-3">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <p class="text-muted mb-1">Stok Menipis</p>
+                  <h3 id="statStokMenipis">0</h3>
+                </div>
+                <i class="ti ti-alert-triangle" style="font-size:36px;color:#ef4444;"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white"><i class="ti ti-alert-triangle text-danger"></i> Barang dengan stok menipis</div>
+          <div class="card-body">
+            <table class="table table-sm">
+              <thead><tr><th>Kode</th><th>Nama Barang</th><th>Stok Sekarang</th><th>Stok Minimum</th></tr></thead>
+              <tbody id="tableStokMenipis"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- DATA BARANG -->
+      <div id="page-barang" style="display:none;">
+        <div class="d-flex justify-content-between mb-3">
+          <input type="text" id="searchBarang" class="form-control w-50" placeholder="Cari kode, nama, atau merek barang...">
+          <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#modalBarang" onclick="openBarangModal()">
+            <i class="ti ti-plus"></i> Tambah Barang
+          </button>
+        </div>
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Kode</th><th>Nama Barang</th><th>Kategori</th><th>Merek/Model</th>
+                  <th>Stok</th><th>Satuan</th><th>Kondisi</th><th>Lokasi</th><th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tableBarang"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- MUTASI STOK -->
+      <div id="page-mutasi" style="display:none;">
+        <div class="d-flex justify-content-between mb-3">
+          <h6 class="text-muted">Riwayat barang masuk/keluar</h6>
+          <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#modalMutasi">
+            <i class="ti ti-plus"></i> Catat Mutasi
+          </button>
+        </div>
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr><th>Tanggal</th><th>Barang</th><th>Jenis</th><th>Jumlah</th><th>Stok Sebelum</th><th>Stok Sesudah</th><th>Keterangan</th></tr>
+              </thead>
+              <tbody id="tableMutasi"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- MASTER DATA -->
+      <div id="page-master" style="display:none;">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-header bg-white d-flex justify-content-between">
+                <span>Kategori</span>
+                <button class="btn btn-sm btn-dark" onclick="tambahKategori()"><i class="ti ti-plus"></i></button>
+              </div>
+              <ul class="list-group list-group-flush" id="listKategori"></ul>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-header bg-white d-flex justify-content-between">
+                <span>Lokasi</span>
+                <button class="btn btn-sm btn-dark" onclick="tambahLokasi()"><i class="ti ti-plus"></i></button>
+              </div>
+              <ul class="list-group list-group-flush" id="listLokasi"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL BARANG (Tambah/Edit) ============ -->
+<div class="modal fade" id="modalBarang" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalBarangTitle">Tambah Barang</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formBarang">
+          <input type="hidden" id="barangId">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Kode Barang *</label>
+              <input type="text" class="form-control" id="kodeBarang" required placeholder="contoh: CCTV-003">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Nama Barang *</label>
+              <input type="text" class="form-control" id="namaBarang" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Kategori *</label>
+              <select class="form-select" id="kategoriId" required></select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Lokasi</label>
+              <select class="form-select" id="lokasiId"></select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Merek</label>
+              <input type="text" class="form-control" id="merek">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Model</label>
+              <input type="text" class="form-control" id="model">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Satuan</label>
+              <input type="text" class="form-control" id="satuan" value="unit">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Stok Sekarang *</label>
+              <input type="number" class="form-control" id="stokSekarang" required min="0">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Stok Minimum *</label>
+              <input type="number" class="form-control" id="stokMinimum" required min="0">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Harga Satuan</label>
+              <input type="number" class="form-control" id="hargaSatuan" min="0">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Kondisi</label>
+              <select class="form-select" id="kondisi">
+                <option value="BAIK">Baik</option>
+                <option value="RUSAK">Rusak</option>
+                <option value="PERBAIKAN">Perbaikan</option>
+              </select>
+            </div>
+            <div class="col-md-12">
+              <label class="form-label">Spesifikasi</label>
+              <textarea class="form-control" id="spesifikasi" rows="2"></textarea>
+            </div>
+            <div class="col-md-12">
+              <label class="form-label">Keterangan</label>
+              <textarea class="form-control" id="keterangan" rows="2"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-dark" onclick="simpanBarang()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL MUTASI ============ -->
+<div class="modal fade" id="modalMutasi" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Catat Mutasi Stok</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formMutasi">
+          <div class="mb-3">
+            <label class="form-label">Barang *</label>
+            <select class="form-select" id="mutasiBarangId" required></select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Jenis *</label>
+            <select class="form-select" id="mutasiJenis" required>
+              <option value="MASUK">Barang Masuk</option>
+              <option value="KELUAR">Barang Keluar</option>
+              <option value="PENYESUAIAN">Penyesuaian Stok</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Jumlah *</label>
+            <input type="number" class="form-control" id="mutasiJumlah" required min="1">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Lokasi Tujuan / Dipasang di</label>
+            <input type="text" class="form-control" id="mutasiLokasiTujuan" placeholder="contoh: Site Tanjung Redeb">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Dipinjam Oleh</label>
+            <input type="text" class="form-control" id="mutasiDipinjamOleh">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Keterangan</label>
+            <textarea class="form-control" id="mutasiKeterangan" rows="2"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-dark" onclick="simpanMutasi()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ============================================================
+// KONFIGURASI — GANTI sesuai URL backend kamu
+// ============================================================
+const API_BASE_URL = "http://localhost:8080/api"; // GANTI ke URL Railway/Render saat deploy
+// Contoh nanti production: const API_BASE_URL = "https://inventory-it-backend.up.railway.app/api";
+
+let token = localStorage.getItem("token");
+let currentUser = JSON.parse(localStorage.getItem("user") || "null");
+let kategoriList = [];
+let lokasiList = [];
+let barangList = [];
+
+// ============================================================
+// AUTH
+// ============================================================
+function showLogin() {
+  document.getElementById("loginPage").style.display = "block";
+  document.getElementById("appPage").style.display = "none";
+}
+function showApp() {
+  document.getElementById("loginPage").style.display = "none";
+  document.getElementById("appPage").style.display = "block";
+  document.getElementById("userFullName").textContent = currentUser.fullName;
+  document.getElementById("userRole").textContent = currentUser.role;
+  loadDashboard();
+}
+
+if (token && currentUser) { showApp(); } else { showLogin(); }
+
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const username = document.getElementById("loginUsername").value;
+  const password = document.getElementById("loginPassword").value;
+  const alertBox = document.getElementById("loginAlert");
+  alertBox.classList.add("d-none");
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    });
+    const result = await res.json();
+    if (result.success) {
+      token = result.data.token;
+      currentUser = result.data;
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(currentUser));
+      showApp();
+    } else {
+      alertBox.textContent = result.message || "Login gagal";
+      alertBox.classList.remove("d-none");
+    }
+  } catch (err) {
+    alertBox.textContent = "Tidak bisa terhubung ke server. Pastikan kamu terhubung ke jaringan perusahaan.";
+    alertBox.classList.remove("d-none");
+  }
+});
+
+document.getElementById("logoutBtn").addEventListener("click", (e) => {
+  e.preventDefault();
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  token = null; currentUser = null;
+  showLogin();
+});
+
+// ============================================================
+// API HELPER
+// ============================================================
+async function apiCall(endpoint, method = "GET", body = null) {
+  const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };
+  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : null
+  });
+  const result = await res.json();
+  if (res.status === 401) { localStorage.clear(); showLogin(); throw new Error("Sesi habis, silakan login ulang"); }
+  if (!result.success) throw new Error(result.message);
+  return result.data;
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+document.querySelectorAll(".sidebar .nav-link").forEach(link => {
+  link.addEventListener("click", (e) => {
+    e.preventDefault();
+    document.querySelectorAll(".sidebar .nav-link").forEach(l => l.classList.remove("active"));
+    link.classList.add("active");
+    const page = link.dataset.page;
+    document.querySelectorAll("[id^='page-']").forEach(p => p.style.display = "none");
+    document.getElementById(`page-${page}`).style.display = "block";
+    document.getElementById("pageTitle").textContent = link.textContent.trim();
+    if (page === "dashboard") loadDashboard();
+    if (page === "barang") loadBarang();
+    if (page === "mutasi") loadMutasi();
+    if (page === "master") loadMaster();
+  });
+});
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+async function loadDashboard() {
+  try {
+    const all = await apiCall("/barang");
+    const menipis = await apiCall("/barang/stok-menipis");
+    document.getElementById("statTotalBarang").textContent = all.length;
+    document.getElementById("statTotalStok").textContent = all.reduce((s, b) => s + b.stokSekarang, 0);
+    document.getElementById("statStokMenipis").textContent = menipis.length;
+
+    const tbody = document.getElementById("tableStokMenipis");
+    tbody.innerHTML = menipis.length ? menipis.map(b => `
+      <tr><td>${b.kodeBarang}</td><td>${b.namaBarang}</td>
+      <td><span class="badge badge-stok-menipis">${b.stokSekarang}</span></td>
+      <td>${b.stokMinimum}</td></tr>`).join("")
+      : `<tr><td colspan="4" class="text-center text-muted">Semua stok aman</td></tr>`;
+  } catch (err) { console.error(err); }
+}
+
+// ============================================================
+// BARANG (CRUD)
+// ============================================================
+async function loadBarang(keyword = "") {
+  try {
+    await loadMasterLists();
+    const endpoint = keyword ? `/barang?keyword=${encodeURIComponent(keyword)}` : "/barang";
+    barangList = await apiCall(endpoint);
+    renderBarangTable();
+  } catch (err) { alert(err.message); }
+}
+
+function renderBarangTable() {
+  const tbody = document.getElementById("tableBarang");
+  tbody.innerHTML = barangList.map(b => `
+    <tr>
+      <td>${b.kodeBarang}</td>
+      <td>${b.namaBarang}</td>
+      <td>${b.kategori ? b.kategori.nama : "-"}</td>
+      <td>${b.merek || ""} ${b.model || ""}</td>
+      <td>${b.stokSekarang <= b.stokMinimum ? `<span class="badge badge-stok-menipis">${b.stokSekarang}</span>` : `<span class="badge badge-stok-aman">${b.stokSekarang}</span>`}</td>
+      <td>${b.satuan}</td>
+      <td><span class="badge badge-kondisi-${b.kondisi.toLowerCase()}">${b.kondisi}</span></td>
+      <td>${b.lokasi ? b.lokasi.nama : "-"}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-secondary" onclick="editBarang(${b.id})"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-sm btn-outline-danger" onclick="hapusBarang(${b.id})"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>`).join("");
+}
+
+document.getElementById("searchBarang").addEventListener("input", (e) => loadBarang(e.target.value));
+
+async function loadMasterLists() {
+  kategoriList = await apiCall("/master/kategori");
+  lokasiList = await apiCall("/master/lokasi");
+  document.getElementById("kategoriId").innerHTML = kategoriList.map(k => `<option value="${k.id}">${k.nama}</option>`).join("");
+  document.getElementById("lokasiId").innerHTML = `<option value="">- Tidak ada -</option>` + lokasiList.map(l => `<option value="${l.id}">${l.nama}</option>`).join("");
+  document.getElementById("mutasiBarangId").innerHTML = barangList.map(b => `<option value="${b.id}">${b.kodeBarang} - ${b.namaBarang}</option>`).join("");
+}
+
+function openBarangModal() {
+  document.getElementById("formBarang").reset();
+  document.getElementById("barangId").value = "";
+  document.getElementById("modalBarangTitle").textContent = "Tambah Barang";
+}
+
+function editBarang(id) {
+  const b = barangList.find(x => x.id === id);
+  document.getElementById("barangId").value = b.id;
+  document.getElementById("kodeBarang").value = b.kodeBarang;
+  document.getElementById("namaBarang").value = b.namaBarang;
+  document.getElementById("kategoriId").value = b.kategori.id;
+  document.getElementById("lokasiId").value = b.lokasi ? b.lokasi.id : "";
+  document.getElementById("merek").value = b.merek || "";
+  document.getElementById("model").value = b.model || "";
+  document.getElementById("satuan").value = b.satuan;
+  document.getElementById("stokSekarang").value = b.stokSekarang;
+  document.getElementById("stokMinimum").value = b.stokMinimum;
+  document.getElementById("hargaSatuan").value = b.hargaSatuan || 0;
+  document.getElementById("kondisi").value = b.kondisi;
+  document.getElementById("spesifikasi").value = b.spesifikasi || "";
+  document.getElementById("keterangan").value = b.keterangan || "";
+  document.getElementById("modalBarangTitle").textContent = "Edit Barang";
+  new bootstrap.Modal(document.getElementById("modalBarang")).show();
+}
+
+async function simpanBarang() {
+  const id = document.getElementById("barangId").value;
+  const payload = {
+    kodeBarang: document.getElementById("kodeBarang").value,
+    namaBarang: document.getElementById("namaBarang").value,
+    kategoriId: parseInt(document.getElementById("kategoriId").value),
+    lokasiId: document.getElementById("lokasiId").value ? parseInt(document.getElementById("lokasiId").value) : null,
+    merek: document.getElementById("merek").value,
+    model: document.getElementById("model").value,
+    satuan: document.getElementById("satuan").value,
+    stokSekarang: parseInt(document.getElementById("stokSekarang").value),
+    stokMinimum: parseInt(document.getElementById("stokMinimum").value),
+    hargaSatuan: parseFloat(document.getElementById("hargaSatuan").value) || 0,
+    kondisi: document.getElementById("kondisi").value,
+    spesifikasi: document.getElementById("spesifikasi").value,
+    keterangan: document.getElementById("keterangan").value
+  };
+  try {
+    if (id) await apiCall(`/barang/${id}`, "PUT", payload);
+    else await apiCall("/barang", "POST", payload);
+    bootstrap.Modal.getInstance(document.getElementById("modalBarang")).hide();
+    loadBarang();
+  } catch (err) { alert(err.message); }
+}
+
+async function hapusBarang(id) {
+  if (!confirm("Hapus barang ini?")) return;
+  try { await apiCall(`/barang/${id}`, "DELETE"); loadBarang(); }
+  catch (err) { alert(err.message); }
+}
+
+// ============================================================
+// MUTASI STOK
+// ============================================================
+async function loadMutasi() {
+  try {
+    await loadMasterLists();
+    const data = await apiCall("/mutasi");
+    document.getElementById("tableMutasi").innerHTML = data.map(m => `
+      <tr>
+        <td>${new Date(m.tanggalMutasi).toLocaleString("id-ID")}</td>
+        <td>${m.barang.kodeBarang} - ${m.barang.namaBarang}</td>
+        <td><span class="badge ${m.jenis === 'MASUK' ? 'bg-success' : m.jenis === 'KELUAR' ? 'bg-danger' : 'bg-warning'}">${m.jenis}</span></td>
+        <td>${m.jumlah}</td><td>${m.stokSebelum}</td><td>${m.stokSesudah}</td>
+        <td>${m.keterangan || "-"}</td>
+      </tr>`).join("");
+  } catch (err) { alert(err.message); }
+}
+
+async function simpanMutasi() {
+  const payload = {
+    barangId: parseInt(document.getElementById("mutasiBarangId").value),
+    jenis: document.getElementById("mutasiJenis").value,
+    jumlah: parseInt(document.getElementById("mutasiJumlah").value),
+    lokasiTujuan: document.getElementById("mutasiLokasiTujuan").value,
+    dipinjamOleh: document.getElementById("mutasiDipinjamOleh").value,
+    keterangan: document.getElementById("mutasiKeterangan").value
+  };
+  try {
+    await apiCall("/mutasi", "POST", payload);
+    bootstrap.Modal.getInstance(document.getElementById("modalMutasi")).hide();
+    document.getElementById("formMutasi").reset();
+    loadMutasi();
+  } catch (err) { alert(err.message); }
+}
+
+// ============================================================
+// MASTER DATA
+// ============================================================
+async function loadMaster() {
+  kategoriList = await apiCall("/master/kategori");
+  lokasiList = await apiCall("/master/lokasi");
+  document.getElementById("listKategori").innerHTML = kategoriList.map(k => `<li class="list-group-item">${k.nama}</li>`).join("");
+  document.getElementById("listLokasi").innerHTML = lokasiList.map(l => `<li class="list-group-item">${l.nama} ${l.gedung ? '- ' + l.gedung : ''}</li>`).join("");
+}
+
+async function tambahKategori() {
+  const nama = prompt("Nama kategori baru:");
+  if (!nama) return;
+  try { await apiCall("/master/kategori", "POST", { nama }); loadMaster(); }
+  catch (err) { alert(err.message); }
+}
+
+async function tambahLokasi() {
+  const nama = prompt("Nama lokasi baru:");
+  if (!nama) return;
+  try { await apiCall("/master/lokasi", "POST", { nama }); loadMaster(); }
+  catch (err) { alert(err.message); }
+}
+</script>
+</body>
+</html>
